@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VTM V20 - Досье: Эш Велей</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Crimson+Text:ital,wght@0,400;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+    <style>
+        * { box-sizing: border-box; }
+
+        body {
+            background-color: #000000;
+            color: #d4cbaf;
+            font-family: "Crimson Text", "Palatino Linotype", "Book Antiqua", Palatino, serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            font-size: 17px;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        #blood-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        .book-page {
+            max-width: 950px;
+            margin: 0 auto;
+            border: 4px double #4a4a38;
+            padding: 40px 50px;
+            background-color: #050505;
+            box-shadow: 
+                0 0 30px rgba(0, 0, 0, 0.9),
+                0 0 80px rgba(92, 10, 10, 0.15),
+                inset 0 0 60px rgba(0,0,0,0.5);
+            position: relative;
+            z-index: 1;
+            animation: pageAppear 1.2s ease-out;
+            overflow: hidden;
+        }
+
+        @keyframes pageAppear {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .book-page::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            background: radial-gradient(ellipse at center, transparent 50%, rgba(0,0,0,0.4) 100%);
+            z-index: 0;
+        }
+
+        .book-page > * { position: relative; z-index: 1; }
+
+        .corner { 
+            position: absolute; 
+            color: #5c0a0a; 
+            font-size: 28px; 
+            line-height: 1; 
+            user-select: none;
+            opacity: 0.7;
+            transition: opacity 0.5s, color 0.5s;
+            z-index: 5;
+        }
+        .corner:hover { opacity: 1; color: #8b0000; }
+        .top-left { top: 10px; left: 15px; }
+        .top-right { top: 10px; right: 15px; transform: scaleX(-1); }
+        .bottom-left { bottom: 10px; left: 15px; transform: scaleY(-1); }
+        .bottom-right { bottom: 10px; right: 15px; transform: scale(-1, -1); }
+
+        /* --- ТИТУЛЬНОЕ ИЗОБРАЖЕНИЕ --- */
+        .title-image-wrapper {
+            margin: -40px -50px 30px -50px;
+            position: relative;
+            overflow: hidden;
+            height: 520px;
+            z-index: 2;
+        }
+
+        .title-image-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center 20%;
+            filter: grayscale(60%) contrast(120%) sepia(15%) brightness(0.5);
+            display: block;
+            transition: filter 1s ease, transform 8s ease;
+        }
+
+        .title-image-wrapper:hover img {
+            filter: grayscale(30%) contrast(110%) sepia(10%) brightness(0.65);
+            transform: scale(1.03);
+        }
+
+        .title-image-wrapper::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 65%;
+            background: linear-gradient(to top, #050505 15%, transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .title-image-wrapper::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 30%;
+            background: linear-gradient(to bottom, rgba(5,5,5,0.7) 0%, transparent 100%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .tape-overlay {
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 130px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(0,0,0,0.06);
+            box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+            z-index: 4;
+        }
+
+        .dossier-stamp {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            font-family: "Courier New", Courier, monospace;
+            color: #8b0000;
+            border: 2px solid #8b0000;
+            padding: 4px 12px;
+            font-size: 0.85em;
+            font-weight: bold;
+            text-transform: uppercase;
+            transform: rotate(4deg);
+            opacity: 0.8;
+            letter-spacing: 2px;
+            z-index: 4;
+            box-shadow: 0 0 20px rgba(139,0,0,0.3);
+            animation: stampAppear 0.5s ease-out 0.8s both;
+        }
+
+        @keyframes stampAppear {
+            from { opacity: 0; transform: rotate(4deg) scale(1.5); }
+            to { opacity: 0.8; transform: rotate(4deg) scale(1); }
+        }
+
+        .location-tag {
+            position: absolute;
+            bottom: 25px;
+            left: 25px;
+            font-family: "Courier New", monospace;
+            color: rgba(212, 203, 175, 0.6);
+            font-size: 0.8em;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            z-index: 3;
+        }
+
+        .location-tag::before {
+            content: '◉';
+            margin-right: 6px;
+            color: #8b0000;
+            animation: pulseDot 2s ease-in-out infinite;
+        }
+
+        /* --- ШАПКА ДОСЬЕ --- */
+        .header-sheet {
+            border-bottom: 2px solid #5c0a0a;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
+            animation: headerSlide 0.8s ease-out 0.3s both;
+        }
+
+        @keyframes headerSlide {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .char-name {
+            font-family: "Cinzel", "Times New Roman", Times, serif;
+            text-align: center;
+            color: #8b0000;
+            font-size: 2.8em;
+            text-transform: uppercase;
+            letter-spacing: 6px;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 30px rgba(139,0,0,0.3);
+            animation: nameGlow 4s ease-in-out infinite alternate;
+        }
+
+        @keyframes nameGlow {
+            0% { text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 20px rgba(139,0,0,0.2); }
+            100% { text-shadow: 2px 2px 4px rgba(0,0,0,0.8), 0 0 40px rgba(139,0,0,0.5), 0 0 80px rgba(139,0,0,0.15); }
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+            text-align: center;
+            font-size: 0.95em;
+        }
+        .stat-item { 
+            border-right: 1px solid #3e3c35; 
+            padding: 5px 0;
+            animation: statFade 0.6s ease-out both;
+        }
+        .stat-item:nth-child(1) { animation-delay: 0.5s; }
+        .stat-item:nth-child(2) { animation-delay: 0.6s; }
+        .stat-item:nth-child(3) { animation-delay: 0.7s; }
+        .stat-item:nth-child(4) { animation-delay: 0.8s; }
+        .stat-item:nth-child(5) { animation-delay: 0.9s; }
+        .stat-item:nth-child(6) { animation-delay: 1.0s; }
+
+        @keyframes statFade {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .stat-item:last-child { border-right: none; }
+        .stat-label { color: #8b8778; text-transform: uppercase; font-size: 0.75em; letter-spacing: 1.5px; display: block; }
+        .stat-value { color: #e0d8c0; font-weight: bold; font-family: "Cinzel", serif; font-size: 1.05em; }
+
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 25px;
+            border-bottom: 1px solid #3e3c35;
+            padding-bottom: 5px;
+            gap: 4px;
+        }
+        .tab-btn {
+            background: transparent;
+            border: 1px solid transparent;
+            color: #8b8778;
+            padding: 10px 20px;
+            font-family: "Cinzel", "Times New Roman", Times, serif;
+            font-size: 0.95em;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            transition: all 0.4s ease;
+            position: relative;
+        }
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 50%;
+            transform: translateX(-50%) scaleX(0);
+            width: 80%;
+            height: 2px;
+            background: #8b0000;
+            transition: transform 0.4s ease;
+        }
+        .tab-btn:hover { color: #d4cbaf; }
+        .tab-btn:hover::after { transform: translateX(-50%) scaleX(1); }
+        .tab-btn.active { 
+            color: #d4cbaf; 
+            border: 1px solid #4a4a38; 
+            border-bottom: 2px solid #8b0000; 
+            background: #0f0f0f; 
+        }
+        .tab-btn.active::after { transform: translateX(-50%) scaleX(0); }
+
+        .columns {
+            column-count: 2;
+            column-gap: 40px;
+            column-rule: 1px solid #3e3c35;
+        }
+        
+        @media (max-width: 768px) {
+            .columns { column-count: 1; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .book-page { padding: 25px 20px; }
+            .title-image-wrapper {
+                margin: -25px -20px 25px -20px;
+                height: 340px;
+            }
+            .char-name { font-size: 2em; letter-spacing: 3px; }
+            .tabs { flex-wrap: wrap; }
+            .tab-btn { font-size: 0.8em; padding: 8px 12px; }
+        }
+
+        h2 {
+            font-family: "Cinzel", "Times New Roman", Times, serif;
+            color: #c4a882;
+            font-size: 1.5em;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            margin-top: 0;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #3e3c35;
+            padding-bottom: 8px;
+            column-span: all;
+        }
+
+        p {
+            text-align: justify;
+            margin-bottom: 1em;
+            text-indent: 1.5em;
+        }
+        p.no-indent { text-indent: 0; }
+
+        .drop-cap::first-letter {
+            float: left;
+            font-family: "Cinzel", "Times New Roman", serif;
+            font-size: 3.5em;
+            line-height: 0.8;
+            padding-right: 10px;
+            padding-top: 4px;
+            color: #8b0000;
+            text-shadow: 0 0 15px rgba(139,0,0,0.4);
+        }
+
+        blockquote {
+            font-style: italic;
+            border-left: 2px solid #5c0a0a;
+            padding-left: 18px;
+            margin: 1.5em 0;
+            color: #a89880;
+            position: relative;
+        }
+
+        blockquote::before {
+            content: '';
+            display: none;
+        }
+
+        .tzimisce-accent {
+            color: #9acd32;
+            text-shadow: 0 0 8px rgba(154, 205, 50, 0.3);
+        }
+
+        .pleasure-accent {
+            color: #c77dba;
+            text-shadow: 0 0 8px rgba(199, 125, 186, 0.3);
+        }
+
+        hr.vtm-divider {
+            border: none;
+            height: 1px;
+            background: linear-gradient(to right, transparent, #5c0a0a, transparent);
+            margin: 2em 0;
+            column-span: all;
+            position: relative;
+        }
+
+        hr.vtm-divider::after {
+            content: '◆';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            color: #5c0a0a;
+            font-size: 0.6em;
+            background: #050505;
+            padding: 0 10px;
+        }
+
+        .vtm-portrait {
+            column-span: all;
+            margin: 30px auto;
+            text-align: center;
+            background: linear-gradient(135deg, #e8e3d5, #d8d3c5);
+            padding: 12px 12px 35px 12px;
+            box-shadow: 4px 4px 12px rgba(0,0,0,0.7), 0 0 20px rgba(0,0,0,0.3);
+            max-width: 320px;
+            position: relative;
+            z-index: 1;
+            transition: transform 0.5s ease, box-shadow 0.5s ease;
+        }
+        .vtm-portrait:hover {
+            box-shadow: 6px 6px 20px rgba(0,0,0,0.8), 0 0 30px rgba(92,10,10,0.2);
+        }
+        .vtm-portrait::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90px;
+            height: 28px;
+            background: rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(0,0,0,0.08);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            z-index: 2;
+        }
+        .vtm-portrait img {
+            width: 100%;
+            filter: grayscale(70%) contrast(110%) sepia(25%);
+            border: 1px solid #999;
+            display: block;
+            transition: filter 0.6s ease;
+        }
+        .vtm-portrait:hover img {
+            filter: grayscale(40%) contrast(115%) sepia(15%);
+        }
+        .vtm-portrait .caption {
+            font-family: "Courier New", Courier, monospace;
+            color: #333;
+            font-size: 0.85em;
+            margin-top: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+        .tilt-left { transform: rotate(-2.5deg); }
+        .tilt-left:hover { transform: rotate(-1.5deg); }
+        .tilt-right { transform: rotate(1.8deg); }
+        .tilt-right:hover { transform: rotate(0.8deg); }
+        .tilt-slight { transform: rotate(-1deg); }
+        .tilt-slight:hover { transform: rotate(0deg); }
+
+        .spoiler-section {
+            margin-top: 20px;
+            column-span: all;
+        }
+        .spoiler-header {
+            background: linear-gradient(135deg, #0f0e0c, #0a0a08);
+            border: 1px solid #3e3c35;
+            padding: 12px 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-family: "Cinzel", "Times New Roman", Times, serif;
+            color: #8b0000;
+            text-transform: uppercase;
+            font-size: 1.05em;
+            letter-spacing: 1.5px;
+            transition: all 0.4s ease;
+        }
+        .spoiler-header:hover { 
+            background: linear-gradient(135deg, #1a1915, #0f0e0c);
+            border-color: #5c0a0a;
+            text-shadow: 0 0 10px rgba(139,0,0,0.3);
+        }
+        .arrow { transition: transform 0.4s ease; font-size: 0.8em; }
+        .spoiler-header.active .arrow { transform: rotate(180deg); }
+        
+        .spoiler-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.6s cubic-bezier(0.4, 0, 0.2, 1), padding 0.4s ease;
+            background: #080807;
+            border: 1px solid #3e3c35;
+            border-top: none;
+            padding: 0 20px;
+        }
+        .spoiler-content.open {
+            padding: 20px;
+            border-top: 1px dashed #3e3c35;
+        }
+
+        .spoiler-content h3 {
+            color: #8b0000;
+            margin-top: 0;
+            text-transform: uppercase;
+            font-size: 1em;
+            font-family: "Cinzel", serif;
+            letter-spacing: 1px;
+        }
+
+        .blood-drop {
+            position: fixed;
+            pointer-events: none;
+            z-index: 9999;
+            width: 6px;
+            height: 8px;
+            background: radial-gradient(ellipse at center, rgba(139,0,0,0.8), rgba(92,10,10,0.3));
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            animation: bloodFade 2s ease-out forwards;
+        }
+
+        @keyframes bloodFade {
+            0% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(0.8) translateY(5px); }
+            100% { opacity: 0; transform: scale(0.3) translateY(15px); }
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.8em;
+            color: #5c5c5c;
+            margin-top: 40px;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            column-span: all;
+            animation: footerFade 1s ease-out 1.5s both;
+        }
+
+        @keyframes footerFade {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .pulse-dot {
+            display: inline-block;
+            width: 6px;
+            height: 6px;
+            background: #8b0000;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulseDot 2s ease-in-out infinite;
+            vertical-align: middle;
+        }
+
+        @keyframes pulseDot {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(139,0,0,0.6); }
+            50% { box-shadow: 0 0 0 6px rgba(139,0,0,0); }
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: linear-gradient(135deg, #1a1915, #0f0e0c);
+            border: 1px solid #5c0a0a;
+            color: #d4cbaf;
+            padding: 12px 24px;
+            font-family: "Cinzel", serif;
+            font-size: 0.85em;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            z-index: 10000;
+            opacity: 0;
+            transition: all 0.5s ease;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8), 0 0 15px rgba(92,10,10,0.3);
+        }
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #3e3c35; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #5c0a0a; }
+
+        ::selection {
+            background: rgba(139,0,0,0.4);
+            color: #e0d8c0;
+        }
+
+        .tab-content {
+            opacity: 0;
+            animation: tabContentIn 0.6s ease-out forwards;
+        }
+
+        @keyframes tabContentIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .em-dash {
+            color: #8b0000;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+<canvas id="blood-canvas"></canvas>
+
+<div class="book-page">
+    <div class="corner top-left">❧</div>
+    <div class="corner top-right">❧</div>
+    <div class="corner bottom-left">❧</div>
+    <div class="corner bottom-right">❧</div>
+
+    <!-- ТИТУЛЬНОЕ ИЗОБРАЖЕНИЕ -->
+    <div class="title-image-wrapper">
+        <div class="tape-overlay"></div>
+        <div class="dossier-stamp">Файл #07-VL</div>
+        <div class="location-tag">Las Vegas, NV — Наблюдение</div>
+        <img src="https://z-cdn-media.chatglm.cn/files/280e78dc-bc5e-42ca-bffc-ed5422ffc618.png?auth_key=1878991842-da666497c04f4a1ab0cd377bba6cd7c1-0-2b65470eb5dd2440a7d375403650dfc0" alt="Las Vegas Strip ночью">
+    </div>
+
+    <!-- Шапка персонажа -->
+    <div class="header-sheet">
+        <h1 class="char-name">Эш Велей</h1>
+        <div class="stats-grid">
+            <div class="stat-item"><span class="stat-label">Клан</span><span class="stat-value">Цимисхи</span></div>
+            <div class="stat-item"><span class="stat-label">Секта</span><span class="stat-value">Анархи</span></div>
+            <div class="stat-item"><span class="stat-label">Поколение</span><span class="stat-value">7-е</span></div>
+            <div class="stat-item"><span class="stat-label">Концепт</span><span class="stat-value">Megafaggot, Pedik, Лужа</span></div>
+            <div class="stat-item"><span class="stat-label">Натура</span><span class="stat-value">Бон Вивант</span></div>
+            <div class="stat-item"><span class="stat-label">Маска</span><span class="stat-value">Одиночка</span></div>
+        </div>
+    </div>
+
+    <!-- Навигация по вкладкам -->
+    <div class="tabs">
+        <button class="tab-btn active" onclick="openTab(event, 'pre-embrace')"><span class="pulse-dot"></span>До Становления</button>
+        <button class="tab-btn" onclick="openTab(event, 'embrace')"><span class="pulse-dot"></span>Становление и Сир</button>
+        <button class="tab-btn" onclick="openTab(event, 'post-embrace')"><span class="pulse-dot"></span>После Становления</button>
+    </div>
+
+    <!-- ВКЛАДКА 1: ДО СТАНОВЛЕНИЯ -->
+    <div id="pre-embrace" class="tab-content columns" style="display: block;">
+        <h2>Предыстория до Становления</h2>
+        
+        <p class="drop-cap">Эш Велей родился в 1978 году в одном из бедных пригородов Лас-Вегаса под именем Эйден Ройс. Район, где прошло его детство, выглядел так, будто город заранее решил от него отказаться: дешёвые мотели, пустые парковки, круглосуточные магазины и жёлтый свет казино, который даже ночью не давал улицам стать по-настоящему тёмными.</p>
+
+        <p>Отец Эйдена был бывшим строителем <span class="em-dash">—</span> тяжёлым, агрессивным человеком, который считал страх лучшим способом воспитывать ребёнка. Мать работала уборщицей в казино и предпочитала не вмешиваться, когда дома начинались крики и удары.</p>
+
+        <p>Проблемы появились очень рано.</p>
+
+        <p>Ещё ребёнком Эйден чувствовал, что его тело будто принадлежит кому-то другому. Пока родителей не было дома, он примерял одежду матери, красился перед зеркалом и представлял, как однажды проснётся кем-то другим. Впервые отец избил его за это в семь лет.</p>
+
+        <p>После этого насилие стало обыденностью.</p>
+
+        <p>Отец пытался «выбить дурь» кулаками, унижениями и постоянным давлением. Он таскал сына на стройки, заставлял драться с другими детьми и приходил в ярость от любой слабости или женственности.</p>
+
+        <p><b>Но хуже всего было то, что со временем Эйден начал замечать в себе странную реакцию на происходящее.</b></p>
+
+        <p><span class="pleasure-accent">После особенно тяжёлых побоев приходило не только облегчение, но и какое-то болезненное внутреннее тепло. Страх, стыд и физическая боль начинали сливаться во что-то почти приятное.</span> Тогда он ещё не понимал, насколько сильно это изменит его в будущем.</p>
+
+        <!-- ФОТО 1: Детство -->
+        <div class="vtm-portrait tilt-left">
+            <img src="https://z-cdn-media.chatglm.cn/files/5ef9d060-82be-48ec-a335-f3e795a6eed0.png?auth_key=1878974212-6d513acdff7543f9bacae13e841e8fb2-0-20ebe8b37802ede85b863b9cb91eb78f" alt="Эйден в детстве">
+            <div class="caption">Эйден Ройс, 1980-е</div>
+        </div>
+
+        <p>К пятнадцати годам Эйден выглядел старше своих лет. Худой, нервный подросток с усталым лицом и привычкой всё время сутулиться, будто он пытался спрятаться внутри собственного тела.</p>
+
+        <p>В шестнадцать он сбежал из дома.</p>
+
+        <hr class="vtm-divider">
+
+        <p class="no-indent"><b>Некоторое время Эйден жил среди бездомных в дренажных тоннелях под Лас-Вегасом.</b></p>
+
+        <p>Именно там он впервые почувствовал свободу. Под землёй никого особенно не интересовало, кто ты такой. Люди там исчезали, меняли имена, тонули во время паводков, продавали наркотики и просто пытались пережить ещё одну ночь.</p>
+
+        <p><b>Тоннели стали его настоящим домом.</b></p>
+
+        <!-- ФОТО 2: Тоннели -->
+        <div class="vtm-portrait tilt-right">
+            <img src="https://z-cdn-media.chatglm.cn/files/9e861ec3-9aeb-46ae-8c62-23145b95a581.png?auth_key=1878974212-41890b5179144feb847448a7512123f2-0-9efdf4ec6a5965457fe1750aee4fe82d" alt="В тоннелях под Вегасом">
+            <div class="caption">Дренажные тоннели, 1996</div>
+        </div>
+
+        <p>Со временем Эйден изучил подземные коммуникации лучше городских служб. Он знал, какие секции затапливает первыми, где скрываются банды, а где можно переждать полицейские рейды. Он мог провести человека через километры подземных проходов в полной темноте и ни разу не ошибиться.</p>
+
+        <p>Именно тогда за ним закрепилось имя Эш.</p>
+
+        <p>Сначала он подрабатывал проводником для диггеров и наркокурьеров, а позже начал водить под землю богатых туристов, ищущих «настоящий тёмный Вегас». Очень быстро Эш понял, что люди готовы платить огромные деньги за ощущение опасности.</p>
+
+        <p><b>И ему нравилось давать им это.</b></p>
+
+        <p>Он любил наблюдать, как уверенные в себе люди постепенно теряют самообладание глубоко под землёй. Любил момент, когда паника начинает медленно проступать сквозь улыбки и шутки. Иногда Эш специально уводил группы в более опасные участки тоннелей просто ради того, чтобы посмотреть, как далеко зайдёт чужой страх.</p>
+
+        <p><span class="pleasure-accent">Именно тогда он впервые начал понимать, что наслаждение может скрываться в очень неприятных вещах.</span></p>
+
+        <p>После смерти своего единственного близкого друга <span class="em-dash">—</span> диггера по прозвищу Рэт <span class="em-dash">—</span> Эш окончательно отдалился от людей. Именно тогда он начал замечать странности в тоннелях.</p>
+
+        <p>Иногда на стенах оставались кислотные ожоги. Иногда находили тела без крови. Некоторые секции тоннелей казались слишком тихими, будто сама темнота там наблюдала за людьми.</p>
+
+        <p><b>Эш начал подозревать, что под Лас-Вегасом живёт что-то нечеловеческое.</b></p>
+    </div>
+
+    <!-- ВКЛАДКА 2: СТАНОВЛЕНИЕ -->
+    <div id="embrace" class="tab-content columns" style="display: none;">
+        <h2>Становление и Сир</h2>
+
+        <p class="drop-cap">Во время сильного шторма в 1998 году Эш проводил группу экстремальных туристов через старый затопленный коллектор. Ливневая система начала стремительно заполняться водой, люди запаниковали, а потом свет фонаря выхватил из темноты высокую фигуру, стоящую прямо посреди потока.</p>
+
+        <p>Так Эш впервые увидел Мирчу Велея.</p>
+
+        <p>На первый взгляд тот казался человеком. Но стоило присмотреться чуть дольше <span class="em-dash">—</span> и становилось ясно, что с ним что-то не так. Кожа будто медленно двигалась сама по себе, словно плоть никак не могла окончательно определиться с формой. Лицо выглядело красивым, почти аристократичным, но в глазах не было ничего человеческого.</p>
+
+        <p><b>Туристы попытались бежать.</b></p>
+
+        <p><b>Никто из них не выбрался наружу.</b></p>
+
+        <p><span class="tzimisce-accent">Мирча Велей был древним Цимисхи и последователем Тропы Удовольствия</span> <span class="em-dash">—</span> старого ответвления Дороги Греха, сохранившегося ещё со времён Тёмных Веков. Для него удовольствие было не слабостью, а высшей истиной. Боль, страх, экстаз и жестокость он воспринимал как разные оттенки одного чувства.</p>
+
+        <p>Эш заинтересовал его почти сразу.</p>
+
+        <p>Мирча увидел человека, который всю жизнь пытался сбежать от собственного тела и при этом бессознательно тянулся ко всему опасному, болезненному и запретному. Человека, который уже при жизни был сломан именно так, как нужно.</p>
+
+        <hr class="vtm-divider">
+
+        <p class="no-indent"><b>Становление стало для Эша смесью пытки и откровения.</b></p>
+
+        <p>Мирча утащил его глубоко в старые технические тоннели, где десятилетиями скапливались химические отходы. Несколько суток Эш медленно умирал от ожогов, захлёбываясь сточной водой и собственной кровью. Кожа горела, мышцы сводило судорогами, а тело будто расползалось изнутри.</p>
+
+        <p>Когда Мирча дал ему vitae, всё стало ещё хуже.</p>
+
+        <p><b>Пробуждение оказалось ещё жесточе.</b></p>
+
+        <p>Эш чувствовал каждую мышцу и каждую кость так отчётливо, будто его тело вывернули наружу. Мирча неделями использовал на нём Изменчивость, ломая кости, перекраивая лицо и меняя строение тела с почти хирургическим спокойствием.</p>
+
+        <p>Для большинства это были бы чудовищные пытки.</p>
+
+        <p><b>Для Эша <span class="em-dash">—</span> освобождение.</b></p>
+
+        <p>Впервые в жизни его тело перестало быть клеткой.</p>
+
+        <p><span class="pleasure-accent">И именно тогда он понял самую страшную вещь: ему нравится происходящее. Не сама боль. А ощущение того, как через неё исчезает старое «я».</span></p>
+
+        <hr class="vtm-divider">
+
+        <p class="no-indent"><b>Мирча начал обучать потомка Тропе Удовольствия.</b></p>
+
+        <p>Он учил, что наслаждение <span class="em-dash">—</span> единственная честная вещь в мире. Что человек раскрывает свою настоящую природу только в моменты крайних ощущений. Что страх и экстаз почти не отличаются друг от друга.</p>
+
+        <p>Для Эша это стало почти религией.</p>
+
+        <p>Позже Мирча начал эксперименты с vitae. Он смешивал кровь потомка с химическими токсинами из тоннелей и заставлял Эша изменять саму структуру собственной крови через Vicissitude.</p>
+
+        <p>Со временем vitae Эша стала кислотной.</p>
+
+        <p>Сначала прикосновения оставляли ожоги. Потом кровь начала разъедать металл и бетон. Позже Эш научился превращать части собственного тела в вязкую дымящуюся массу.</p>
+
+        <p><span class="pleasure-accent">Когда он впервые полностью растворился и собрал себя обратно, это ощущалось почти как экстаз.</span></p>
+
+        <p>После этого Эш окончательно отказался от прежнего тела. При помощи Изменчивости он создал себе новый облик <span class="em-dash">—</span> красивый, андрогинный и слишком совершенный, чтобы казаться полностью человеческим.</p>
+
+        <p>Люди часто принимают его за девушку.</p>
+
+        <p><b>Пока не начинают смотреть слишком внимательно.</b></p>
+    </div>
+
+    <!-- ВКЛАДКА 3: ПОСЛЕ СТАНОВЛЕНИЯ -->
+    <div id="post-embrace" class="tab-content columns" style="display: none;">
+        <h2>Предыстория после Становления</h2>
+
+        <!-- ФОТО 3: После Становления -->
+        <div class="vtm-portrait tilt-slight">
+            <img src="https://z-cdn-media.chatglm.cn/files/3125b5bc-c86a-41a2-937d-39cd672f3003.png?auth_key=1878974212-b1bef96b3df74366877a3cfc1c0d4184-0-98dca78f2766f439d082bc0f119defb4" alt="Эш после Становления">
+            <div class="caption">Эш Велей, наши дни</div>
+        </div>
+
+        <p class="drop-cap">После обучения Мирча отпустил потомка почти без объяснений. Не из доверия <span class="em-dash">—</span> скорее из любопытства. Ему было интересно посмотреть, во что Эш превратится без постоянного контроля сира.</p>
+
+        <p>Эш остался жить под Лас-Вегасом.</p>
+
+        <p>Его убежище скрыто глубоко в старом техническом секторе дренажной системы. Попасть туда можно только через затопленные проходы и узкие сервисные тоннели. Внутри это место напоминает одновременно квартиру, хирургическую мастерскую и странную художественную инсталляцию безумца. Среди старой мебели стоят металлические столы со следами кислоты, а бетонные стены местами будто заросли изменённой плотью.</p>
+
+        <p><b>Иногда внутри стен слышно дыхание.</b></p>
+
+        <p>Для Шабаша Эш быстро стал полезным существом. Он знает подземный Вегас лучше многих Носферату и способен провести стаю через половину города так, чтобы их никто не заметил. Иногда он помогает избавляться от тел. Иногда организует тайные маршруты для контрабанды или убежища для скрывающихся Сородичей.</p>
+
+        <p>Но фанатиком секты он так и не стал.</p>
+
+        <p>Большинство шабашитов кажутся ему слишком примитивными. Они наслаждаются насилием ради самого насилия, тогда как для Эша удовольствие давно стало чем-то более тонким и сложным.</p>
+
+        <hr class="vtm-divider">
+
+        <p class="no-indent"><b>Охота для него <span class="em-dash">—</span> это не просто кормление.</b></p>
+
+        <p><span class="pleasure-accent">Эш любит играть с жертвой. Разговаривать. Медленно затягивать человека всё глубже под землю. Смотреть, как страх постепенно смешивается с любопытством, возбуждением и желанием продолжать, даже когда становится очевидно, что происходящее плохо закончится.</span></p>
+
+        <p><b>Именно такие моменты Эш считает по-настоящему красивыми.</b></p>
+
+        <p>При этом он остаётся существом, полным противоречий. Он может искренне сочувствовать людям, пережившим отвержение или дисфорию, помогать молодым ЛГБТ-беглецам исчезнуть из старой жизни, а через час спокойно выдать расистскую тираду, будто вообще не замечает противоречия.</p>
+
+        <p>Эш давно перестал делить людей на хороших и плохих.</p>
+
+        <p>Для него существуют только те, кто способен подарить интересные эмоции <span class="em-dash">—</span> и все остальные.</p>
+
+        <hr class="vtm-divider">
+
+        <p><b>И больше всего его пугает мысль, что однажды он окончательно станет похож на Мирчу.</b></p>
+
+        <p>Потому что иногда он уже ловит себя на том, что смотрит на людей точно так же, как сир когда-то смотрел на него.</p>
+    </div>
+
+    <!-- ИНТЕРАКТИВНЫЕ БЛОКИ -->
+    <div class="spoiler-section">
+        <div class="spoiler-header" onclick="toggleSpoiler(this)">
+            Личные цели <span class="arrow">▼</span>
+        </div>
+        <div class="spoiler-content">
+            <p class="no-indent" style="font-style: italic; color: #a89880; margin-bottom: 5px;">(от лица Эша)</p>
+            <blockquote style="border: none; padding: 0; margin: 0;">Я не хочу власти.<br><br>Власть — это obsession старых мертвецов, которые слишком боятся чувствовать хоть что-то настоящее.<br><br>Я хочу свободы.<br><br>Настоящей. Полной.<br><br>Свободы от формы. От человеческого тела. От стыда. От страха быть «неправильным».<br><br>Каждую ночь я меняю себя и понимаю, насколько плоть несовершенна. Люди цепляются за свои лица так, будто в них есть что-то священное.<br><br>Но лицо — это просто поверхность.<br><br>Кожа — это просто материал.<br><br>Однажды я стану чем-то гораздо большим, чем человек.<br><br>Чем вампир тоже.</blockquote>
+        </div>
+    </div>
+
+    <div class="spoiler-section">
+        <div class="spoiler-header" onclick="toggleSpoiler(this)">
+            Смысл не-жизни <span class="arrow">▼</span>
+        </div>
+        <div class="spoiler-content">
+            <p class="no-indent" style="font-style: italic; color: #a89880; margin-bottom: 5px;">(от лица Эша)</p>
+            <blockquote style="border: none; padding: 0; margin: 0;">Когда я был человеком, я ненавидел зеркала.<br><br>Теперь зеркало — это инструмент.<br><br>Я могу быть красивым. Могу быть отвратительным. Могу растечься по полу кислотной лужей и всё равно остаться собой.<br><br>И знаешь, что самое смешное?<br><br>Только став чудовищем, я впервые почувствовал себя свободным.<br><br>Люди боятся собственных желаний. Боятся боли. Боятся удовольствия. Боятся признать, насколько тесно всё это связано.<br><br>А я больше не хочу бояться ничего.</blockquote>
+        </div>
+    </div>
+
+    <div class="spoiler-section">
+        <div class="spoiler-header" onclick="toggleSpoiler(this)">
+            Отношение к фракциям <span class="arrow">▼</span>
+        </div>
+        <div class="spoiler-content">
+            <p class="no-indent" style="font-style: italic; color: #a89880; margin-bottom: 10px;">(от лица Эша)</p>
+            
+            <h3 style="color: #8b0000; margin-top: 0; text-transform: uppercase; font-size: 1em;">Камарилья</h3>
+            <blockquote style="border: none; padding: 0; margin: 0 0 15px 0;">Камарилья напоминает мне дорогой отель в центре Вегаса.<br><br>Снаружи роскошь и идеальный фасад.<br><br>А внутри — страх, гниль и отчаяние.<br><br>Они так отчаянно пытаются выглядеть людьми, будто это может что-то изменить.<br><br>Но мне нравится их контроль.<br><br>Страх иногда делает существ очень красивыми.</blockquote>
+            
+            <h3 style="color: #8b0000; margin-top: 10px; text-transform: uppercase; font-size: 1em;">Анархи</h3>
+            <blockquote style="border: none; padding: 0; margin: 0 0 15px 0;">Большинство Анархов ведут себя как подростки, которым дали бессмертие и разрешили истерить вечно.<br><br>Но среди них иногда встречаются настоящие психи.<br><br>Именно такие мне обычно нравятся.</blockquote>
+            
+            <h3 style="color: #8b0000; margin-top: 10px; text-transform: uppercase; font-size: 1em;">Шабаш</h3>
+            <blockquote style="border: none; padding: 0; margin: 0 0 15px 0;">Шабаш спас меня.<br><br>И Шабаш отвратителен.<br><br>Слишком много зверей, которые называют свою тупую жестокость свободой. Слишком много мясников, не понимающих разницы между наслаждением и обычной резнёй.<br><br>Но только здесь мне позволено быть собой.<br><br>Только здесь никто не требует притворяться человеком.</blockquote>
+
+            <h3 style="color: #8b0000; margin-top: 10px; text-transform: uppercase; font-size: 1em;">Независимые</h3>
+            <blockquote style="border: none; padding: 0; margin: 0;">Самые интересные Сородичи редко кому-то принадлежат.<br><br>Чтобы прожить века, нужно либо научиться меняться, либо застыть навсегда.<br><br>А всё неподвижное рано или поздно трескается.</blockquote>
+        </div>
+    </div>
+
+    <div class="footer">
+        — Vampire: The Masquerade 20th Anniversary — Досье Сородича — Стр. 114 —
+    </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+    function openTab(evt, tabName) {
+        var i, tabcontent, tablinks;
+        tabcontent = document.getElementsByClassName("tab-content");
+        for (i = 0; i < tabcontent.length; i++) {
+            tabcontent[i].style.display = "none";
+            tabcontent[i].style.animation = 'none';
+        }
+        tablinks = document.getElementsByClassName("tab-btn");
+        for (i = 0; i < tablinks.length; i++) {
+            tablinks[i].className = tablinks[i].className.replace(" active", "");
+        }
+        var targetTab = document.getElementById(tabName);
+        targetTab.style.display = "block";
+        void targetTab.offsetWidth;
+        targetTab.style.animation = 'tabContentIn 0.6s ease-out forwards';
+        evt.currentTarget.className += " active";
+    }
+
+    function toggleSpoiler(header) {
+        var content = header.nextElementSibling;
+        header.classList.toggle("active");
+        if (content.style.maxHeight && content.style.maxHeight !== '0px') {
+            content.style.maxHeight = '0px';
+            content.classList.remove("open");
+        } else {
+            content.style.maxHeight = content.scrollHeight + "px";
+            content.classList.add("open");
+        }
+    }
+
+    const canvas = document.getElementById('blood-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+    let mouseX = 0, mouseY = 0;
+
+    function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
+    class Particle {
+        constructor() { this.reset(); }
+        reset() {
+            this.x = Math.random() * canvas.width;
+            this.y = Math.random() * canvas.height;
+            this.size = Math.random() * 2 + 0.5;
+            this.speedX = (Math.random() - 0.5) * 0.3;
+            this.speedY = Math.random() * 0.3 + 0.1;
+            this.opacity = Math.random() * 0.3 + 0.05;
+            this.life = Math.random() * 300 + 100;
+            this.maxLife = this.life;
+            const r = Math.floor(Math.random() * 60 + 60);
+            const g = Math.floor(Math.random() * 10);
+            const b = Math.floor(Math.random() * 10);
+            this.color = `${r},${g},${b}`;
+        }
+        update() {
+            this.x += this.speedX;
+            this.y += this.speedY;
+            this.life--;
+            const dx = mouseX - this.x;
+            const dy = mouseY - this.y;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 200) {
+                this.speedX += dx * 0.00003;
+                this.speedY += dy * 0.00003;
+            }
+            if (this.life <= 0 || this.y > canvas.height + 10) {
+                this.reset();
+                this.y = -5;
+            }
+        }
+        draw() {
+            const fadeRatio = this.life / this.maxLife;
+            const alpha = this.opacity * fadeRatio;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(${this.color},${alpha})`;
+            ctx.fill();
+        }
+    }
+
+    for (let i = 0; i < 60; i++) { particles.push(new Particle()); }
+
+    function animateParticles() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        particles.forEach(p => { p.update(); p.draw(); });
+        requestAnimationFrame(animateParticles);
+    }
+    animateParticles();
+
+    document.addEventListener('mousemove', (e) => { mouseX = e.clientX; mouseY = e.clientY; });
+
+    let dropCounter = 0;
+    document.addEventListener('mousemove', (e) => {
+        dropCounter++;
+        if (dropCounter % 8 === 0) {
+            const drop = document.createElement('div');
+            drop.className = 'blood-drop';
+            drop.style.left = (e.clientX + (Math.random() - 0.5) * 10) + 'px';
+            drop.style.top = (e.clientY + (Math.random() - 0.5) * 10) + 'px';
+            const scale = Math.random() * 0.8 + 0.4;
+            drop.style.transform = `scale(${scale})`;
+            document.body.appendChild(drop);
+            setTimeout(() => drop.remove(), 2000);
+        }
+    });
+
+    function showToast(msg, duration = 4000) {
+        const toast = document.getElementById('toast');
+        toast.textContent = msg;
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), duration);
+    }
+
+    setTimeout(() => { showToast('🗎 Досье Сородича — Гриф: Только для Внутреннего Круга'); }, 1500);
+
+    function typeValue(el, text, speed = 40) {
+        el.textContent = '';
+        let i = 0;
+        const interval = setInterval(() => {
+            el.textContent += text[i];
+            i++;
+            if (i >= text.length) clearInterval(interval);
+        }, speed);
+    }
+
+    window.addEventListener('load', () => {
+        const statValues = document.querySelectorAll('.stat-value');
+        statValues.forEach((el, idx) => {
+            const original = el.textContent;
+            setTimeout(() => typeValue(el, original, 35), 800 + idx * 150);
+        });
+    });
+</script>
+
+</body>
+</html>
